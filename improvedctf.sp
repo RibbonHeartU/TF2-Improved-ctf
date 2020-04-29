@@ -12,7 +12,10 @@
 #include <sdktools_tempents_stocks>
 #include <sdktools_tempents>
 
-#define VERSION "b3.0"
+#define VERSION "b3.1"
+#define NOTEAM 0
+#define REDTEAM 2
+#define BLUTEAM 3
 
 new const MAX_FLAGS = 8;
 new flag_i[8];
@@ -49,7 +52,7 @@ public OnPluginStart()
 	HookConVarChange(cvar_enabled, InitiateICTF)
 }
 
-public InitiateICTF(Handle:convar, const String:oldValue[], const String:newValue[])
+InitiateICTF(Handle:convar, const String:oldValue[], const String:newValue[])
 {
 	//Check to see if ICTF is enabled and that the game is, in fact, TF2
 	char gamename[3];
@@ -107,9 +110,8 @@ public OnMapStart()
 }
 
 
-public OnFlagDrop(const String:output[], caller, activator, Float:delay)
+OnFlagDrop(const String:output[], caller, activator, Float:delay)
 {
-//	PrintToServer("FLAG DROPPED");
 	//Add a newly dropped flags to the entity index table
 	for(new i=0;i<MAX_FLAGS;i++)
 	{
@@ -128,27 +130,27 @@ public OnFlagDrop(const String:output[], caller, activator, Float:delay)
 	}
 }
 
-public OnFlagPickup(const String:output[], caller, activator, Float:delay)
+OnFlagPickup(const String:output[], caller, activator, Float:delay)
 {
 	last_team = 0;
 	FlagRemove(caller);
 }
 
-public OnFlagPickupRed(const String:output[], caller, activator, Float:delay)
+OnFlagPickupRed(const String:output[], caller, activator, Float:delay)
 {
 	//Set the last held team to RED (for neutral flag purposes)
 	last_team = 2;
 	FlagRemove(caller);
 }
 
-public OnFlagPickupBlu(const String:output[], caller, activator, Float:delay)
+OnFlagPickupBlu(const String:output[], caller, activator, Float:delay)
 {
 	//Set the last held team to BLU (for neutral flag purposes)
 	last_team = 3;
 	FlagRemove(caller);
 }
 
-void FlagRemove(caller)
+FlagRemove(caller)
 {
 	//Remove killed flag from the entity index table
 	for(new i=0;i<MAX_FLAGS;i++)
@@ -161,12 +163,7 @@ void FlagRemove(caller)
 	}
 }
 
-public OnGameFrame()
-{
-
-}
-
-public Action TimeTick(Handle timer)
+Action TimeTick(Handle timer)
 {
 	new Float:flag_pos[3];
 	new Float:c_pos[3];
@@ -195,7 +192,7 @@ public Action TimeTick(Handle timer)
 				{
 					//Get the client's team and check to see if they are the same team as the flag
 					c_team = TF2_GetClientTeam(c);
-					if((team == 0 && ((last_team == 2 && c_team == TFTeam_Blue) || (last_team == 3 && c_team == TFTeam_Red))) || (team == 3 && c_team == TFTeam_Blue) || (team == 2 && c_team == TFTeam_Red))
+					if((team == NOTEAM && ((last_team == REDTEAM && c_team == TFTeam_Blue) || (last_team == BLUTEAM && c_team == TFTeam_Red))) || (team == BLUTEAM && c_team == TFTeam_Blue) || (team == REDTEAM && c_team == TFTeam_Red))
 					{
 						//Get the client's location
 						GetClientAbsOrigin(c, c_pos);
@@ -223,9 +220,9 @@ public Action TimeTick(Handle timer)
 			//Determine ring colors based on if someone is capping and the flag's team
 			switch(team)
 			{
-				case 0:
+				case NOTEAM:
 				{
-					if(game_type != 0)
+					if(game_type != NOTEAM)
 					{
 						ring_color = {235,201,52,255};
 					}
@@ -235,7 +232,7 @@ public Action TimeTick(Handle timer)
 					}
 					if(mult > 0.0)
 					{
-						if(last_team == 2)
+						if(last_team == REDTEAM)
 						{
 							prog_color = {102,102,255,255};
 						}
@@ -249,7 +246,7 @@ public Action TimeTick(Handle timer)
 						prog_color = {192,192,192,255};
 					}
 				}
-				case 2:
+				case REDTEAM:
 				{
 					ring_color = {255,102,102,255};
 					if(mult > 0.0)
@@ -261,7 +258,7 @@ public Action TimeTick(Handle timer)
 						prog_color = {192,192,192,255};
 					}
 				}
-				case 3:
+				case BLUTEAM:
 				{
 					ring_color = {102,102,255,255};
 					if(mult > 0.0)
