@@ -1,5 +1,5 @@
 # TF2-Improved-ctf
-### Version b3.1
+### Version b3.2
 Tired of needing to defend an intel for 60 second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? Improved CTF is here to help
 
 ## What does it do?
