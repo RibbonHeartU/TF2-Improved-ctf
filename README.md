@@ -7,6 +7,7 @@ Players of the same team (or opposite teams in Special Delivery) to stand within
 
 ## Installation
 This plugin requires Sourcemod and only works with Team Fortress 2
+
 Place the included .SMX file into your server's `tf/addons/sourcemod/plugins` folder. On server or plugin startup, "Improved CTF enabled" should print to your server's console.
 
 ## Customization
