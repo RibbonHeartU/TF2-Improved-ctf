@@ -12,7 +12,7 @@
 #include <sdktools_tempents_stocks>
 #include <sdktools_tempents>
 
-#define VERSION "b3.1"
+#define VERSION "b3.2"
 #define NOTEAM 0
 #define REDTEAM 2
 #define BLUTEAM 3
@@ -30,6 +30,7 @@ new Handle:flag_timer;
 
 new beam_sprite;
 new halo_sprite;
+
 
 public Plugin:myinfo = 
 {
@@ -163,6 +164,25 @@ FlagRemove(caller)
 	}
 }
 
+bool ConditionCheck(player_i)
+{
+	//Check if player is in any of these contraband conditions
+	//if they are, in_cond will be passed as true 
+	new bool:if_cond = false;
+	if(TF2_IsPlayerInCondition(player_i, TFCond_Cloaked) || 
+	TF2_IsPlayerInCondition(player_i, TFCond_Ubercharged) || 
+	TF2_IsPlayerInCondition(player_i, TFCond_CloakFlicker) ||
+	TF2_IsPlayerInCondition(player_i, TFCond_Bonked) ||
+	TF2_IsPlayerInCondition(player_i, TFCond_MegaHeal) ||
+	TF2_IsPlayerInCondition(player_i, TFCond_DisguisedAsDispenser) ||
+	TF2_IsPlayerInCondition(player_i, TFCond_UberchargedCanteen) ||
+	TF2_IsPlayerInCondition(player_i, TFCond_Stealthed))
+	{
+		if_cond = true;
+	}
+	return if_cond;
+}
+
 Action TimeTick(Handle timer)
 {
 	new Float:flag_pos[3];
@@ -177,123 +197,124 @@ Action TimeTick(Handle timer)
 	//Iterate through the entity table
 	for(new i=0;i<MAX_FLAGS;i++)
 	{
-		//Continue if a flag is indexed
-		if(flag_i[i] != -1)
+		// Early out if a flag is not indexed
+		if(flag_i[i] == -1)
 		{
-			//Get the flag's location
-			GetEntPropVector(flag_i[i], Prop_Send, "m_vecOrigin", flag_pos);
-			//Get the flag's team
-			team = GetEntData(flag_i[i], 512, 4);
-			//Iterate through all clients
-			for(new c=1;c <= MaxClients; c++)
+			continue;
+		}
+		//Get the flag's location
+		GetEntPropVector(flag_i[i], Prop_Send, "m_vecOrigin", flag_pos);
+		//Get the flag's team
+		team = GetEntData(flag_i[i], 512, 4);
+		//Iterate through all clients
+		for(new c=1;c <= MaxClients; c++)
+		{
+			// Early out if client is not active, not connected, or fake
+			if(!IsClientInGame(c) || IsFakeClient(c) || !IsPlayerAlive(c)) 
 			{
-				//check to see if a client is alive, connected, and not fake
-				if (IsClientInGame(c) && (!IsFakeClient(c)) && IsPlayerAlive(c))
+				continue;
+			}
+			//Get the client's team and check to see if they are the same team as the flag
+			c_team = TF2_GetClientTeam(c);
+			if((team == NOTEAM && ((last_team == REDTEAM && c_team == TFTeam_Blue) || (last_team == BLUTEAM && c_team == TFTeam_Red))) || (team == BLUTEAM && c_team == TFTeam_Blue) || (team == REDTEAM && c_team == TFTeam_Red))
+			{
+				//Get the client's location
+				GetClientAbsOrigin(c, c_pos);
+				//Get the squared distance from the flag
+				new Float:distance = Pow((c_pos[0] - flag_pos[0]), 2.0) + Pow((c_pos[1] - flag_pos[1]), 2.0) + Pow((c_pos[2] - flag_pos[2]), 2.0);
+				//Check to see if the squared distance is less than the squared radius
+				if(distance < Pow(cvar_cap_radius.FloatValue,2.0))
 				{
-					//Get the client's team and check to see if they are the same team as the flag
-					c_team = TF2_GetClientTeam(c);
-					if((team == NOTEAM && ((last_team == REDTEAM && c_team == TFTeam_Blue) || (last_team == BLUTEAM && c_team == TFTeam_Red))) || (team == BLUTEAM && c_team == TFTeam_Blue) || (team == REDTEAM && c_team == TFTeam_Red))
+					if(!ConditionCheck(c))
 					{
-						//Get the client's location
-						GetClientAbsOrigin(c, c_pos);
-						//Get the squared distance from the flag
-						new Float:distance = Pow((c_pos[0] - flag_pos[0]), 2.0) + Pow((c_pos[1] - flag_pos[1]), 2.0) + Pow((c_pos[2] - flag_pos[2]), 2.0);
-						//Check to see if the squared distance is less than the squared radius
-						if(distance < Pow(cvar_cap_radius.FloatValue,2.0))
+						new c_wep = GetPlayerWeaponSlot(c, 2)
+						//if the player's class is a scout, then double their capture rate
+						if(TF2_GetPlayerClass(c) == TFClass_Scout || c_wep == 154)
 						{
-							new c_wep = GetPlayerWeaponSlot(c, 2)
-							//if the player's class is a scout, then double their capture rate
-							if(TF2_GetPlayerClass(c) == TFClass_Scout || c_wep == 154)
-							{
-								mult += cvar_mult.FloatValue*2.0
-							}
-							else
-							{
-								mult += cvar_mult.FloatValue
-							}
-							
-							
+							mult += cvar_mult.FloatValue*2.0
+						}
+						else
+						{
+							mult += cvar_mult.FloatValue
 						}
 					}
 				}
 			}
-			//Determine ring colors based on if someone is capping and the flag's team
-			switch(team)
+		}
+		//Determine ring colors based on if someone is capping and the flag's team
+		switch(team)
+		{
+			case NOTEAM:
 			{
-				case NOTEAM:
+				if(game_type != NOTEAM)
 				{
-					if(game_type != NOTEAM)
-					{
-						ring_color = {235,201,52,255};
-					}
-					else
-					{
-						ring_color = {192,192,192,255};
-					}
-					if(mult > 0.0)
-					{
-						if(last_team == REDTEAM)
-						{
-							prog_color = {102,102,255,255};
-						}
-						else
-						{
-							prog_color = {255,102,102,255};
-						}
-					}
-					else
-					{
-						prog_color = {192,192,192,255};
-					}
+					ring_color = {235,201,52,255};
 				}
-				case REDTEAM:
+				else
 				{
-					ring_color = {255,102,102,255};
-					if(mult > 0.0)
-					{
-						prog_color = {255,102,102,255};
-					}
-					else
-					{
-						prog_color = {192,192,192,255};
-					}
+					ring_color = {192,192,192,255};
 				}
-				case BLUTEAM:
+				if(mult > 0.0)
 				{
-					ring_color = {102,102,255,255};
-					if(mult > 0.0)
+					if(last_team == REDTEAM)
 					{
 						prog_color = {102,102,255,255};
 					}
 					else
 					{
-						prog_color = {192,192,192,255};
+						prog_color = {255,102,102,255};
 					}
 				}
+				else
+				{
+					prog_color = {192,192,192,255};
+				}
 			}
-			//Reduce the flag's timer by the multiplier + one second
-			flag_time[i] -= 1 + mult
-			//reset mult
-			mult = 0.0;
-			//Get the progress circle's radius
-			inner_beam = (flag_time[i]/cvar_time.FloatValue) * cvar_cap_radius.FloatValue
+			case REDTEAM:
+			{
+				ring_color = {255,102,102,255};
+				if(mult > 0.0)
+				{
+					prog_color = {255,102,102,255};
+				}
+				else
+				{
+					prog_color = {192,192,192,255};
+				}
+			}
+			case BLUTEAM:
+			{
+				ring_color = {102,102,255,255};
+				if(mult > 0.0)
+				{
+					prog_color = {102,102,255,255};
+				}
+				else
+				{
+					prog_color = {192,192,192,255};
+				}
+			}
+		}
+		//Reduce the flag's timer by the multiplier + one second
+		flag_time[i] -= 1 + mult
+		//reset mult
+		mult = 0.0;
+		//Get the progress circle's radius
+		inner_beam = (flag_time[i]/cvar_time.FloatValue) * cvar_cap_radius.FloatValue
 
-			//Reset the flag if the timer is zero or less
-			if(flag_time[i] <= 0.0)
-			{
-				AcceptEntityInput(flag_i[i], "ForceReset", -1, -1)
-			}
-			else
-			{
+		//Reset the flag if the timer is zero or less
+		if(flag_time[i] <= 0.0)
+		{
+			AcceptEntityInput(flag_i[i], "ForceReset", -1, -1)
+		}
+		else
+		{
 			//Create the two circles if the timer is still active
 			flag_pos[2] += 7.0
 			TE_SetupBeamRingPoint(flag_pos, cvar_cap_radius.FloatValue, (cvar_cap_radius.FloatValue+0.1), beam_sprite, halo_sprite, 1, 15, 1.0, 4.0, 0.0, ring_color, 0, 0);
 			TE_SendToAll();
 			TE_SetupBeamRingPoint(flag_pos, inner_beam, (inner_beam + 0.1), beam_sprite, halo_sprite, 1, 15, 1.0, 2.0, 0.0, prog_color, 0, 0);
 			TE_SendToAll();
-			}
 		}
 	}
-
 }
-
