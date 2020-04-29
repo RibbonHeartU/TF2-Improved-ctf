@@ -1,5 +1,5 @@
 # TF2-Improved-ctf
-### Version b3.0
+### Version b3.1
 Tired of needing to defend an intel for second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? This is the plugin for you!
 
 ## What does it do?
