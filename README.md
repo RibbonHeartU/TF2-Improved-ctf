@@ -1,6 +1,6 @@
 # TF2-Improved-ctf
 ### Version b3.1
-Tired of needing to defend an intel for second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? This is the plugin for you!
+Tired of needing to defend an intel for 60 second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? Improved CTF is here to help
 
 ## What does it do?
 Players of the same team (or opposite teams in Special Delivery) to stand within a visualized capture radius of a flag to speed up the return time. This capture speed is impacted by number of players within the flag's radius along with vanilla methods of increasing capture rate (Scout and The Pain Train). Admins can also modify the default flag timer and more to suit their server's preference.
