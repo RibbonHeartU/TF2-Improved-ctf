@@ -1,4 +1,4 @@
-# TF2-Improved-ctf
+# TF2-Improved-ctf (Updated 5/13/20)
 ### Version b3.3
 Tired of needing to defend an intel for 60 second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? Improved CTF is here to help
 
@@ -22,8 +22,5 @@ sm_ictf_hud_text - Enables/disables on-screen text for a flag's capture rate (De
 ```
 
 ## Planned features
-- Document a changelog
 - Wider gamemode support
 - Custom weapon capture rate support
-
-## Changelog
