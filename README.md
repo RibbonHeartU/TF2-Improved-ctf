@@ -1,5 +1,5 @@
 # TF2-Improved-ctf
-### Version b3.2
+### Version b3.3
 Tired of needing to defend an intel for 60 second whole seconds before it returns? Do you know how many scouts can throw their bodies at it in that time? Improved CTF is here to help
 
 ## What does it do?
@@ -17,8 +17,10 @@ sm_ictf_version - Prints the installed version of Improved CTF
 sm_ictf_enable - Set to 0 to disable ICTF. Set to 1 to enable. (Default: 1)
 sm_ictf_flag_time - Sets the initial time, in seconds, until the flag is returned. (Default: 30)
 sm_ictf_cap_multiplier - Determines how much capping players effect the return time, as a decimal representing percentage. (Default: 0.6)
-sm_ictf_cap_radius - Determines the distance, in hammer units, from the flag players can return it. Changes the ring visual to match. (Default: 175.0)
+sm_ictf_cap_radius - Determines the distance, in hammer units, from the flag players can return it. Changes the ring visual to match. (Default: 100.0)
+sm_ictf_hud_text - Enables/disables on-screen text for a flag's capture rate (Default: 1)
 ```
+
 ## Planned features
 - Document a changelog
 - Wider gamemode support
